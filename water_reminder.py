@@ -335,18 +335,28 @@ class HydrationBuddyPet:
         tk.Radiobutton(mf, text="🖼️ Static", variable=mv, value="image",
                        bg="white", font=("Segoe UI", 10), selectcolor="white").pack(side=tk.LEFT, padx=10)
 
-        tk.Button(self.settings_win, text="🚀 Start", bg="#2196F3", fg="white",
+        # Start button + test button
+        btn_row = tk.Frame(self.settings_win, bg="white")
+        btn_row.pack(pady=(15, 20))
+        
+        tk.Button(btn_row, text="🧪 Test Now (5s)", bg="#8B5CF6", fg="white",
+                  font=("Segoe UI", 10, "bold"), bd=0, padx=10, pady=8, cursor="hand2",
+                  command=lambda: self._start(iv.get(), mv.get(), test=True)).pack(side=tk.LEFT, padx=5)
+        
+        tk.Button(btn_row, text="🚀 Start", bg="#2196F3", fg="white",
                   font=("Segoe UI", 11, "bold"), bd=0, padx=20, pady=8, cursor="hand2",
-                  command=lambda: self._start(iv.get(), mv.get())).pack(pady=20)
+                  command=lambda: self._start(iv.get(), mv.get())).pack(side=tk.LEFT, padx=5)
 
         self.settings_win.protocol("WM_DELETE_WINDOW", self.root.quit)
 
-    def _start(self, interval, mode):
+    def _start(self, interval, mode, test=False):
         self.interval_minutes = interval
         self.media_mode = mode
         self.settings_win.withdraw()
         self.running = True
-        self._schedule_pet(interval * 60)
+        # Test mode: show pet after 5 seconds; normal: wait full interval
+        delay = 5 if test else interval * 60
+        self._schedule_pet(delay)
 
     def _schedule_pet(self, seconds):
         """Schedule the pet to appear after `seconds`."""
