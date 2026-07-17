@@ -129,38 +129,38 @@ class TransparentWindow:
         if pil_image.size != (self.width, self.height):
             pil_image = pil_image.resize((self.width, self.height), Image.LANCZOS)
         
-        # Convert PIL RGBA to 32-bit bitmap with alpha
-        bitmap_info = win32gui.GetDC(0)
-        hdc_screen = win32gui.GetDC(0)
-        hdc_mem = win32ui.CreateDCFromHandle(win32gui.CreateCompatibleDC(hdc_screen))
-        hbm = win32ui.CreateBitmap()
-        
-        # Create bitmap with alpha
+        # Convert PIL RGBA to raw BGRA bytes
         rgba_data = pil_image.tobytes('raw', 'BGRA')
-        hbm.CreateCompatibleBitmap(win32gui.GetDC(0), self.width, self.height)
-        hbm.SetBitmapBits(rgba_data)
         
-        hdc_mem.SelectObject(hbm)
+        # Get screen DC via win32ui (returns PyCDC, not raw handle)
+        screen_dc = win32ui.GetDC(0)
+        mem_dc = win32ui.CreateDCFromHandle(win32gui.CreateCompatibleDC(screen_dc.GetSafeHdc()))
+        
+        # Create bitmap
+        bmp = win32ui.CreateBitmap()
+        bmp.CreateCompatibleBitmap(screen_dc, self.width, self.height)
+        mem_dc.SelectObject(bmp)
+        
+        # Set bitmap bits
+        bmp.SetBitmapBits(rgba_data)
         
         # Update layered window
-        blend = win32gui.BLENDFUNCTION(
-            win32con.AC_SRC_OVER, 0, 255, win32con.AC_SRC_ALPHA
-        )
+        blend = (0, 0, 255, 1)  # AC_SRC_ALPHA
         win32gui.UpdateLayeredWindow(
-            self.hwnd, hdc_screen,
+            self.hwnd, screen_dc.GetSafeHdc(),
             None,  # position unchanged
             (self.width, self.height),
-            hdc_mem.GetSafeHdc(),
+            mem_dc.GetSafeHdc(),
             (0, 0),  # source origin
-            0,  # color key (unused with AC_SRC_ALPHA)
+            0,  # color key unused with AC_SRC_ALPHA
             blend,
             win32con.ULW_ALPHA,
         )
         
         # Cleanup
-        win32gui.DeleteObject(hbm.GetSafeHandle())
-        hdc_mem.DeleteDC()
-        win32gui.ReleaseDC(0, hdc_screen)
+        mem_dc.DeleteDC()
+        screen_dc.DeleteDC()
+        win32gui.DeleteObject(bmp.GetSafeHandle())
 
     def show(self):
         """Show the window."""
