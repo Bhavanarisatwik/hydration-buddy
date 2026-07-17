@@ -10,6 +10,8 @@ import tkinter as tk
 from PIL import Image, ImageDraw, ImageFont, ImageTk
 import os
 import sys
+import ctypes
+from ctypes import wintypes
 
 # Win32 for transparent layered windows
 import win32gui
@@ -125,25 +127,51 @@ class TransparentWindow:
                 return
 
     def update(self, pil_image):
-        """Update the window with a PIL RGBA image."""
+        """Update the window with a PIL RGBA image using CreateDIBSection for alpha."""
         if pil_image.size != (self.width, self.height):
             pil_image = pil_image.resize((self.width, self.height), Image.LANCZOS)
         
         # Convert PIL RGBA to raw BGRA bytes
         rgba_data = pil_image.tobytes('raw', 'BGRA')
         
-        # Get screen DC and create compatible memory DC
+        # Get screen DC
         hdc_screen = win32gui.GetDC(0)
         screen_dc = win32ui.CreateDCFromHandle(hdc_screen)
         mem_dc = screen_dc.CreateCompatibleDC()
         
-        # Create bitmap and set its bits
-        bmp = win32ui.CreateBitmap()
-        bmp.CreateCompatibleBitmap(screen_dc, self.width, self.height)
-        mem_dc.SelectObject(bmp)
-        bmp.SetBitmapBits(rgba_data)
+        # Create a DIB section (device-independent bitmap) with alpha for proper 32-bit
         
-        # Update layered window with alpha
+        class BITMAPINFOHEADER(ctypes.Structure):
+            _fields_ = [
+                ("biSize", wintypes.DWORD), ("biWidth", wintypes.LONG),
+                ("biHeight", wintypes.LONG), ("biPlanes", wintypes.WORD),
+                ("biBitCount", wintypes.WORD), ("biCompression", wintypes.DWORD),
+                ("biSizeImage", wintypes.DWORD), ("biXPelsPerMeter", wintypes.LONG),
+                ("biYPelsPerMeter", wintypes.LONG), ("biClrUsed", wintypes.DWORD),
+                ("biClrImportant", wintypes.DWORD),
+            ]
+        
+        bmi = BITMAPINFOHEADER()
+        bmi.biSize = ctypes.sizeof(BITMAPINFOHEADER)
+        bmi.biWidth = self.width
+        bmi.biHeight = -self.height  # Negative = top-down DIB
+        bmi.biPlanes = 1
+        bmi.biBitCount = 32
+        bmi.biCompression = 0  # BI_RGB
+        
+        p_bits = ctypes.c_void_p()
+        hbmp = ctypes.windll.gdi32.CreateDIBSection(
+            hdc_screen, ctypes.byref(bmi), 0, ctypes.byref(p_bits), None, 0
+        )
+        
+        # Copy pixel data into the DIB
+        if p_bits:
+            ctypes.memmove(p_bits, rgba_data, len(rgba_data))
+        
+        # Select into DC
+        old_bmp = win32gui.SelectObject(mem_dc.GetSafeHdc(), hbmp)
+        
+        # Update layered window
         blend = (0, 0, 255, 1)  # AC_SRC_ALPHA
         win32gui.UpdateLayeredWindow(
             self.hwnd, hdc_screen,
@@ -157,10 +185,11 @@ class TransparentWindow:
         )
         
         # Cleanup
+        win32gui.SelectObject(mem_dc.GetSafeHdc(), old_bmp)
+        win32gui.DeleteObject(hbmp)
         mem_dc.DeleteDC()
         screen_dc.DeleteDC()
         win32gui.ReleaseDC(0, hdc_screen)
-        win32gui.DeleteObject(bmp.GetSafeHandle())
 
     def show(self):
         """Show the window."""
