@@ -260,7 +260,9 @@ class HydrationBuddyPet:
 
     def __init__(self):
         self.root = tk.Tk()
-        self.root.withdraw()
+        # Keep root alive but invisible so Toplevel works properly
+        self.root.geometry("1x1+0+0")
+        self.root.attributes('-alpha', 0)
         
         self.interval_minutes = 30
         self.media_mode = "video" if HAS_OPENCV else "image"
