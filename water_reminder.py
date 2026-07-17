@@ -132,27 +132,26 @@ class TransparentWindow:
         # Convert PIL RGBA to raw BGRA bytes
         rgba_data = pil_image.tobytes('raw', 'BGRA')
         
-        # Get screen DC via win32ui (returns PyCDC, not raw handle)
-        screen_dc = win32ui.GetDC(0)
-        mem_dc = win32ui.CreateDCFromHandle(win32gui.CreateCompatibleDC(screen_dc.GetSafeHdc()))
+        # Get screen DC and create compatible memory DC
+        hdc_screen = win32gui.GetDC(0)
+        screen_dc = win32ui.CreateDCFromHandle(hdc_screen)
+        mem_dc = screen_dc.CreateCompatibleDC()
         
-        # Create bitmap
+        # Create bitmap and set its bits
         bmp = win32ui.CreateBitmap()
         bmp.CreateCompatibleBitmap(screen_dc, self.width, self.height)
         mem_dc.SelectObject(bmp)
-        
-        # Set bitmap bits
         bmp.SetBitmapBits(rgba_data)
         
-        # Update layered window
+        # Update layered window with alpha
         blend = (0, 0, 255, 1)  # AC_SRC_ALPHA
         win32gui.UpdateLayeredWindow(
-            self.hwnd, screen_dc.GetSafeHdc(),
-            None,  # position unchanged
+            self.hwnd, hdc_screen,
+            None,
             (self.width, self.height),
             mem_dc.GetSafeHdc(),
-            (0, 0),  # source origin
-            0,  # color key unused with AC_SRC_ALPHA
+            (0, 0),
+            0,
             blend,
             win32con.ULW_ALPHA,
         )
@@ -160,6 +159,7 @@ class TransparentWindow:
         # Cleanup
         mem_dc.DeleteDC()
         screen_dc.DeleteDC()
+        win32gui.ReleaseDC(0, hdc_screen)
         win32gui.DeleteObject(bmp.GetSafeHandle())
 
     def show(self):
