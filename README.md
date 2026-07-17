@@ -1,87 +1,79 @@
-# 💧 Hydration Buddy
+# 💧 Hydration Buddy — Desktop Pet
 
-A desktop water reminder app featuring a custom pixel art character that pops up to remind you to stay hydrated!
-
-Built with Python, Tkinter, and OpenCV.
+A **transparent desktop pet** that floats on your screen and reminds you to drink water! Built with Python, Win32 layered windows for true per-pixel alpha transparency, and a custom pixel art character.
 
 ## ✨ Features
 
-- **Custom Pixel Art Character** — Your own animated hydration buddy
-- **Two Modes** — Animated video loop or static PNG character
-- **Flexible Intervals** — Remind every 30 minutes or 1 hour
-- **Snooze** — Busy? Snooze for 10 minutes
-- **Encouragement** — "Great job!" acknowledgement when you drink
-- **Borderless Popup** — Clean, modern overlay in the bottom-right corner
-- **Draggable** — Move the reminder window anywhere on screen
-
-## 📸 Preview
-
-<!-- Add screenshots here -->
+- **True Transparency** — Per-pixel alpha via `UpdateLayeredWindow`. The character floats with NO background, like a desktop mascot
+- **Animated** — Plays a looping walk+drink animation from video or shows a static sprite
+- **Thought Bubble** — "💧 Time to drink water!" appears above the character
+- **Clickable Buttons** — "✓ Yes, I drank it!" and "⏰ Snooze (10 min)"
+- **Draggable** — Click & drag the pet anywhere on screen
+- **Right-click Dismiss** — Quickly snooze with a right-click
+- **Flexible Intervals** — 30 minutes or 1 hour between reminders
 
 ## 🚀 Quick Start
 
-### 1. Install Python
-
-Download and install Python 3.9+ from [python.org](https://python.org).  
-**Check "Add Python to PATH" during installation.**
-
-### 2. Install Dependencies
-
 ```bash
+# Install dependencies
 pip install -r requirements.txt
-```
 
-### 3. Run
-
-```bash
+# Run
 python water_reminder.py
 ```
 
-Or simply double-click `water_reminder.py`!
+## 🎨 How It Looks
 
-## 🎨 Customize Your Character
+```
+┌─────────────────────────────┐
+│  ┌───────────────────────┐  │  ← Blue thought bubble
+│  │ 💧 Time to drink ...  │  │     (semi-transparent)
+│  └───────────────────────┘  │
+│                             │
+│       ┌─────────┐           │
+│       │         │           │  ← Character with
+│       │  🚶‍♂️    │           │     TRANSPARENT background
+│       │  💧     │           │
+│       └─────────┘           │
+│                             │
+│  ┌──────────┐ ┌──────────┐  │  ← Clickable buttons
+│  │ ✓ Drank! │ │ ⏰Snooze │  │
+│  └──────────┘ └──────────┘  │
+└─────────────────────────────┘
+```
 
-Replace the files in `assets/` with your own pixel art:
+## 🛠️ How It Works
 
-| File | Purpose |
-|------|---------|
-| `assets/character.png` | Static standing pose |
-| `assets/character_drinking.png` | Drinking pose (shown in reminder) |
-| `assets/character_walk.mp4` | Animated walking/drinking video |
+1. **Settings** → Pick interval and mode, hit Start
+2. **Timer runs** in the background  
+3. **Pet appears** in bottom-right corner with transparent background
+4. **Click "Yes, I drank it!"** → "Great job!" + next interval
+5. **Click "Snooze"** or **right-click** → reminded in 10 minutes
+6. **Drag** the pet anywhere you want it
 
-## 🏗️ Project Structure
+## 📁 Project Structure
 
 ```
 hydration-buddy/
 ├── assets/
-│   ├── character.png           # Standing sprite
-│   ├── character_drinking.png  # Drinking sprite
-│   ├── character_phone.png     # Phone sprite
-│   └── character_walk.mp4      # Animated video
-├── water_reminder.py           # Main application
-├── requirements.txt            # Python dependencies
+│   ├── character_transparent.png        # Standing sprite (alpha)
+│   ├── character_drinking_transparent.png # Drinking sprite (alpha)
+│   └── character_walk.mp4              # Animated video
+├── water_reminder.py                   # Main app
+├── requirements.txt
 └── README.md
 ```
 
-## ⚙️ How It Works
+## 🔧 Tech Stack
 
-1. Launch the app → settings window appears
-2. Choose your interval (30 min / 1 hour) and style (animated / static)
-3. Click "Start Reminding Me!" → app minimizes to background
-4. When time's up → your character pops up in the bottom-right with "💧 Time to drink water!"
-5. Click **"Yes, I drank it!"** → see "Great job!" and set next reminder
-6. Click **"Snooze"** → reminded again in 10 minutes
-
-## 🛠️ Tech Stack
-
-- **Python 3.9+** — Core language
-- **Tkinter** — Built-in GUI framework
-- **Pillow** — Image handling
-- **OpenCV** — Video playback (optional, for animated mode)
+- **Python 3.9+** 
+- **pywin32** — Win32 layered windows for true alpha transparency
+- **Pillow** — Image processing & frame compositing
+- **OpenCV** — Video frame extraction (optional, for animated mode)
 
 ## 📝 License
 
-MIT — feel free to use, modify, and share!
+MIT
 
 ---
 

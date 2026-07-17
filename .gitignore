@@ -21,3 +21,4 @@ Thumbs.db
 *.egg-info/
 dist/
 build/
+.claude-memory.md
