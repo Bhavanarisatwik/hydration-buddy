@@ -305,7 +305,7 @@ class HydrationBuddyPet:
         self.settings_win.geometry("340x260")
         self.settings_win.resizable(False, False)
         self.settings_win.configure(bg="#FFFFFF")
-        self.settings_win.eval("tk::PlaceWindow . center")
+        self.root.eval(f"tk::PlaceWindow {self.settings_win} center")
         self.settings_win.attributes('-topmost', True)
 
         iv = tk.IntVar(value=30)
@@ -445,7 +445,7 @@ class HydrationBuddyPet:
         self.gj_win.resizable(False, False)
         self.gj_win.configure(bg="white")
         self.gj_win.attributes('-topmost', True)
-        self.gj_win.eval("tk::PlaceWindow . center")
+        self.root.eval(f"tk::PlaceWindow {self.gj_win} center")
 
         tk.Label(self.gj_win, text="🎉 Great job staying hydrated!",
                  font=("Segoe UI", 11, "bold"), bg="white", fg="#1a1a2e").pack(pady=(15, 5))
